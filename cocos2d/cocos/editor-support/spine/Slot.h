@@ -1,124 +1,90 @@
 /******************************************************************************
- * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Spine Runtimes Software License v2.5
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2016, Esoteric Software
+ * All rights reserved.
  *
- * Integration of the Spine Runtimes into software or otherwise creating
- * derivative works of the Spine Runtimes is permitted under the terms and
- * conditions of Section 2 of the Spine Editor License Agreement:
- * http://esotericsoftware.com/spine-editor-license
+ * You are granted a perpetual, non-exclusive, non-sublicensable, and
+ * non-transferable license to use, install, execute, and perform the Spine
+ * Runtimes software and derivative works solely for personal or internal
+ * use. Without the written permission of Esoteric Software (see Section 2 of
+ * the Spine Software License Agreement), you may not (a) modify, translate,
+ * adapt, or develop new applications using the Spine Runtimes or otherwise
+ * create derivative works or improvements of the Spine Runtimes or (b) remove,
+ * delete, alter, or obscure any trademarks or any copyright, trademark, patent,
+ * or other intellectual property or proprietary rights notices on or in the
+ * Software, including any copy thereof. Redistributions in binary or source
+ * form must include this license and terms.
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
- * "Products"), provided that each user of the Products must obtain their own
- * Spine Editor license and redistribution of the Products in any form must
- * include this license and copyright notice.
- *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS INTERRUPTION, OR LOSS OF
+ * USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef Spine_Slot_h
-#define Spine_Slot_h
+#ifndef SPINE_SLOT_H_
+#define SPINE_SLOT_H_
 
-#include <spine/Vector.h>
-#include <spine/SpineObject.h>
-#include <spine/Color.h>
+#include <spine/Bone.h>
+#include <spine/Attachment.h>
+#include <spine/SlotData.h>
 
-namespace spine {
-class SlotData;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-class Bone;
+typedef struct spSlot {
+	spSlotData* const data;
+	spBone* const bone;
+	float r, g, b, a;
+	spAttachment* const attachment;
 
-class Skeleton;
+	int attachmentVerticesCapacity;
+	int attachmentVerticesCount;
+	float* attachmentVertices;
 
-class Attachment;
+#ifdef __cplusplus
+	spSlot() :
+		data(0),
+		bone(0),
+		r(0), g(0), b(0), a(0),
+		attachment(0),
+		attachmentVerticesCapacity(0),
+		attachmentVerticesCount(0),
+		attachmentVertices(0) {
+	}
+#endif
+} spSlot;
 
-class SP_API Slot : public SpineObject {
-	friend class VertexAttachment;
+spSlot* spSlot_create (spSlotData* data, spBone* bone);
+void spSlot_dispose (spSlot* self);
 
-	friend class Skeleton;
+/* @param attachment May be 0 to clear the attachment for the slot. */
+void spSlot_setAttachment (spSlot* self, spAttachment* attachment);
 
-	friend class SkeletonBounds;
+void spSlot_setAttachmentTime (spSlot* self, float time);
+float spSlot_getAttachmentTime (const spSlot* self);
 
-	friend class SkeletonClipping;
+void spSlot_setToSetupPose (spSlot* self);
 
-	friend class AttachmentTimeline;
+#ifdef SPINE_SHORT_NAMES
+typedef spSlot Slot;
+#define Slot_create(...) spSlot_create(__VA_ARGS__)
+#define Slot_dispose(...) spSlot_dispose(__VA_ARGS__)
+#define Slot_setAttachment(...) spSlot_setAttachment(__VA_ARGS__)
+#define Slot_setAttachmentTime(...) spSlot_setAttachmentTime(__VA_ARGS__)
+#define Slot_getAttachmentTime(...) spSlot_getAttachmentTime(__VA_ARGS__)
+#define Slot_setToSetupPose(...) spSlot_setToSetupPose(__VA_ARGS__)
+#endif
 
-	friend class ColorTimeline;
-
-	friend class DeformTimeline;
-
-	friend class DrawOrderTimeline;
-
-	friend class EventTimeline;
-
-	friend class IkConstraintTimeline;
-
-	friend class PathConstraintMixTimeline;
-
-	friend class PathConstraintPositionTimeline;
-
-	friend class PathConstraintSpacingTimeline;
-
-	friend class ScaleTimeline;
-
-	friend class ShearTimeline;
-
-	friend class TransformConstraintTimeline;
-
-	friend class TranslateTimeline;
-
-	friend class TwoColorTimeline;
-
-public:
-	Slot(SlotData &data, Bone &bone);
-
-	void setToSetupPose();
-
-	SlotData &getData();
-
-	Bone &getBone();
-
-	Skeleton &getSkeleton();
-
-	Color &getColor();
-
-	Color &getDarkColor();
-
-	bool hasDarkColor();
-
-	/// May be NULL.
-	Attachment *getAttachment();
-
-	void setAttachment(Attachment *inValue);
-
-	float getAttachmentTime();
-
-	void setAttachmentTime(float inValue);
-
-	Vector<float> &getDeform();
-
-private:
-	SlotData &_data;
-	Bone &_bone;
-	Skeleton &_skeleton;
-	Color _color;
-	Color _darkColor;
-	bool _hasDarkColor;
-	Attachment *_attachment;
-	float _attachmentTime;
-	Vector<float> _deform;
-};
+#ifdef __cplusplus
 }
+#endif
 
-#endif /* Spine_Slot_h */
+#endif /* SPINE_SLOT_H_ */

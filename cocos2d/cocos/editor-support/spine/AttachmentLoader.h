@@ -1,75 +1,78 @@
 /******************************************************************************
- * Spine Runtimes License Agreement
- * Last updated January 1, 2020. Replaces all prior versions.
+ * Spine Runtimes Software License v2.5
  *
- * Copyright (c) 2013-2020, Esoteric Software LLC
+ * Copyright (c) 2013-2016, Esoteric Software
+ * All rights reserved.
  *
- * Integration of the Spine Runtimes into software or otherwise creating
- * derivative works of the Spine Runtimes is permitted under the terms and
- * conditions of Section 2 of the Spine Editor License Agreement:
- * http://esotericsoftware.com/spine-editor-license
+ * You are granted a perpetual, non-exclusive, non-sublicensable, and
+ * non-transferable license to use, install, execute, and perform the Spine
+ * Runtimes software and derivative works solely for personal or internal
+ * use. Without the written permission of Esoteric Software (see Section 2 of
+ * the Spine Software License Agreement), you may not (a) modify, translate,
+ * adapt, or develop new applications using the Spine Runtimes or otherwise
+ * create derivative works or improvements of the Spine Runtimes or (b) remove,
+ * delete, alter, or obscure any trademarks or any copyright, trademark, patent,
+ * or other intellectual property or proprietary rights notices on or in the
+ * Software, including any copy thereof. Redistributions in binary or source
+ * form must include this license and terms.
  *
- * Otherwise, it is permitted to integrate the Spine Runtimes into software
- * or otherwise create derivative works of the Spine Runtimes (collectively,
- * "Products"), provided that each user of the Products must obtain their own
- * Spine Editor license and redistribution of the Products in any form must
- * include this license and copyright notice.
- *
- * THE SPINE RUNTIMES ARE PROVIDED BY ESOTERIC SOFTWARE LLC "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL ESOTERIC SOFTWARE LLC BE LIABLE FOR ANY
- * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES,
- * BUSINESS INTERRUPTION, OR LOSS OF USE, DATA, OR PROFITS) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
- * THE SPINE RUNTIMES, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, BUSINESS INTERRUPTION, OR LOSS OF
+ * USE, DATA, OR PROFITS) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  *****************************************************************************/
 
-#ifndef Spine_AttachmentLoader_h
-#define Spine_AttachmentLoader_h
+#ifndef SPINE_ATTACHMENTLOADER_H_
+#define SPINE_ATTACHMENTLOADER_H_
 
-#include <spine/RTTI.h>
-#include <spine/SpineObject.h>
-#include <spine/SpineString.h>
+#include <spine/Attachment.h>
+#include <spine/Skin.h>
 
-namespace spine {
-	class Skin;
-	class Attachment;
-	class RegionAttachment;
-	class MeshAttachment;
-	class BoundingBoxAttachment;
-	class PathAttachment;
-	class PointAttachment;
-	class ClippingAttachment;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	class SP_API AttachmentLoader : public SpineObject {
-	public:
-		RTTI_DECL
+typedef struct spAttachmentLoader {
+	const char* error1;
+	const char* error2;
 
-		AttachmentLoader();
+	const void* const vtable;
+#ifdef __cplusplus
+	spAttachmentLoader () :
+					error1(0),
+					error2(0),
+					vtable(0) {
+	}
+#endif
+} spAttachmentLoader;
 
-		virtual ~AttachmentLoader();
+void spAttachmentLoader_dispose (spAttachmentLoader* self);
 
-		/// @return May be NULL to not load any attachment.
-		virtual RegionAttachment* newRegionAttachment(Skin& skin, const String& name, const String& path) = 0;
+/* Called to create each attachment. Returns 0 to not load an attachment. If 0 is returned and _spAttachmentLoader_setError was
+ * called, an error occurred. */
+spAttachment* spAttachmentLoader_createAttachment (spAttachmentLoader* self, spSkin* skin, spAttachmentType type, const char* name,
+		const char* path);
+/* Called after the attachment has been fully configured. */
+void spAttachmentLoader_configureAttachment (spAttachmentLoader* self, spAttachment* attachment);
+/* Called just before the attachment is disposed. This can release allocations made in spAttachmentLoader_configureAttachment. */
+void spAttachmentLoader_disposeAttachment (spAttachmentLoader* self, spAttachment* attachment);
 
-		/// @return May be NULL to not load any attachment.
-		virtual MeshAttachment* newMeshAttachment(Skin& skin, const String& name, const String& path) = 0;
+#ifdef SPINE_SHORT_NAMES
+typedef spAttachmentLoader AttachmentLoader;
+#define AttachmentLoader_dispose(...) spAttachmentLoader_dispose(__VA_ARGS__)
+#define AttachmentLoader_createAttachment(...) spAttachmentLoader_createAttachment(__VA_ARGS__)
+#define AttachmentLoader_configureAttachment(...) spAttachmentLoader_configureAttachment(__VA_ARGS__)
+#define AttachmentLoader_disposeAttachment(...) spAttachmentLoader_disposeAttachment(__VA_ARGS__)
+#endif
 
-		/// @return May be NULL to not load any attachment.
-		virtual BoundingBoxAttachment* newBoundingBoxAttachment(Skin& skin, const String& name) = 0;
-
-		/// @return May be NULL to not load any attachment
-		virtual PathAttachment* newPathAttachment(Skin& skin, const String& name) = 0;
-
-		virtual PointAttachment* newPointAttachment(Skin& skin, const String& name) = 0;
-
-		virtual ClippingAttachment* newClippingAttachment(Skin& skin, const String& name) = 0;
-
-		virtual void configureAttachment(Attachment* attachment) = 0;
-	};
+#ifdef __cplusplus
 }
+#endif
 
-#endif /* Spine_AttachmentLoader_h */
+#endif /* SPINE_ATTACHMENTLOADER_H_ */
